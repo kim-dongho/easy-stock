@@ -2,9 +2,9 @@
   "name": "easy-stock",
   "private": true,
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "lint": "turbo lint",
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -12,8 +12,7 @@
     "@commitlint/config-conventional": "^20.5.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "prettier": "latest",
-    "turbo": "latest"
+    "prettier": "latest"
   },
   "packageManager": "pnpm@11.2.2",
   "engines": {
