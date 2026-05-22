@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# next.js
+apps/web/.next/
+apps/web/out/
+
+# go
+apps/server/server
+
+# env
+.env
+.env.local
+.env*.local
+
+# ide
+.idea/
+.vscode/
+*.swp
+
+# os
+.DS_Store

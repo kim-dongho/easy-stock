@@ -1,0 +1,17 @@
+services:
+  web:
+    build: ./apps/web
+    ports:
+      - "5050:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://server:5051
+    depends_on:
+      - server
+
+  server:
+    build: ./apps/server
+    ports:
+      - "5051:5051"
+    environment:
+      - PORT=5051
+      - DATABASE_URL=postgres://postgres:postgres@host.docker.internal:5432/quant?sslmode=disable
