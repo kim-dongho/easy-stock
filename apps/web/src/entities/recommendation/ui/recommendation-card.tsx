@@ -1,59 +1,82 @@
+import { Star } from "lucide-react";
+import StockLogo from "@/shared/ui/stock-logo";
+import Tooltip from "@/shared/ui/tooltip";
 import type { Recommendation } from "../model/types";
 
-const scoreColor = (score: number, total: number) => {
-  if (score >= 4) return "bg-emerald-500";
-  if (score >= 3) return "bg-amber-500";
-  return "bg-zinc-400";
+const scoreColor = (score: number) => {
+  if (score >= 4) return "bg-secondary-container text-white";
+  if (score >= 3) return "bg-primary-container text-white";
+  return "bg-surface-highest text-on-surface-variant";
 };
 
-const scoreLabel = (score: number, total: number) => {
+const scoreLabel = (score: number) => {
   if (score >= 4) return "강력 추천";
   if (score >= 3) return "추천";
   return "관심";
 };
 
+function PriceDisplay({ symbol, close }: { symbol: string; close: number }) {
+  const isKr = symbol.includes(".KS") || symbol.includes(".KQ");
+  const currency = isKr ? "₩" : "$";
+  const formatted = isKr
+    ? close.toLocaleString("ko-KR")
+    : close.toLocaleString("en-US");
+  return (
+    <div className="flex items-center gap-1 ">
+      <span className="text-sm text-on-surface-variant">{currency}</span>
+      {formatted}
+    </div>
+  );
+}
+
 export default function RecommendationCard({ item }: { item: Recommendation }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex flex-col rounded-lg border border-outline-variant bg-surface-low transition-colors hover:bg-surface-container">
       {/* 헤더 */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="truncate text-base font-semibold text-zinc-900 dark:text-zinc-100">
-            {item.name}
-          </h3>
-          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-            {item.symbol} · {item.exchange}
-          </p>
+      <div className="flex items-start justify-between gap-2 p-5 pb-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <StockLogo symbol={item.symbol} name={item.name} />
+          <div className="min-w-0">
+            <h3 className="truncate font-heading text-sm font-semibold text-on-surface">
+              {item.name}
+            </h3>
+            <p className="font-data text-xs text-on-surface-variant">
+              {item.symbol}
+            </p>
+          </div>
         </div>
         <span
-          className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white ${scoreColor(item.score, 5)}`}
+          className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${scoreColor(item.score)}`}
         >
-          {scoreLabel(item.score, 5)} {item.score}/5
+          <Star size={12} fill="currentColor" />
+          {scoreLabel(item.score)} {item.score}/5
         </span>
       </div>
 
       {/* 종가 */}
-      <p className="mt-3 text-lg font-bold text-zinc-900 dark:text-zinc-100">
-        {item.symbol.includes(".KS") || item.symbol.includes(".KQ")
-          ? `₩${item.close.toLocaleString()}`
-          : `$${item.close.toLocaleString()}`}
-      </p>
+      <div className="px-5 pt-4">
+        <p className="font-data text-xl font-medium text-on-surface">
+          <PriceDisplay symbol={item.symbol} close={item.close} />
+        </p>
+      </div>
+
+      {/* 차트 영역 (placeholder) */}
+      <div className="h-16 px-5" />
 
       {/* 시그널 */}
-      <div className="mt-3 flex flex-col gap-2">
-        {item.signals.map((signal) => (
-          <div
-            key={signal.name}
-            className="rounded-lg bg-emerald-50 px-3 py-2 dark:bg-emerald-950/50"
-          >
-            <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-              {signal.name}
-            </p>
-            <p className="mt-0.5 text-xs text-emerald-600 dark:text-emerald-400">
-              {signal.description}
-            </p>
-          </div>
-        ))}
+      <div className="mt-auto border-t border-outline-variant px-5 py-4">
+        <p className="mb-2 text-xs font-medium uppercase tracking-widest text-on-surface-variant">
+          분석 시그널
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {item.signals.map((signal) => (
+            <Tooltip key={signal.name} content={signal.description}>
+              <span className="cursor-default rounded-full border border-secondary/30 bg-secondary/10 px-2.5 py-1 text-xs font-medium text-secondary">
+                {signal.name}
+              </span>
+            </Tooltip>
+          ))}
+        </div>
       </div>
     </div>
   );

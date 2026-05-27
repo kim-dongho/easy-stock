@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import Navbar from "@/widgets/layout/ui/navbar";
 import QueryProvider from "@/shared/providers/query-provider";
+import ThemeProvider from "@/shared/providers/theme-provider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const hanken = Hanken_Grotesk({
+  variable: "--font-hanken",
+  subsets: ["latin"],
+  weight: ["600", "700"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
+  weight: ["500"],
 });
 
 export const metadata: Metadata = {
@@ -27,15 +35,17 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${hanken.variable} ${inter.variable} ${jetbrains.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
-        <QueryProvider>
-          <Navbar />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-            {children}
-          </main>
-        </QueryProvider>
+      <body className="flex min-h-full flex-col font-body">
+        <ThemeProvider>
+          <QueryProvider>
+            <Navbar />
+            <main className="mx-auto w-full max-w-[1440px] flex-1 px-8 py-6">
+              {children}
+            </main>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
