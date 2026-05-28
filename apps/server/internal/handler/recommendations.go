@@ -14,12 +14,13 @@ type Signal struct {
 }
 
 type Recommendation struct {
-	Symbol   string   `json:"symbol"`
-	Name     string   `json:"name"`
-	Exchange string   `json:"exchange"`
-	Score    int      `json:"score"`
-	Close    float64  `json:"close"`
-	Signals  []Signal `json:"signals"`
+	Symbol    string    `json:"symbol"`
+	Name      string    `json:"name"`
+	Exchange  string    `json:"exchange"`
+	Score     int       `json:"score"`
+	Close     float64   `json:"close"`
+	Signals   []Signal  `json:"signals"`
+	Sparkline []float64 `json:"sparkline"`
 }
 
 type RecommendationsResponse struct {
@@ -128,6 +129,9 @@ func Recommendations(w http.ResponseWriter, r *http.Request) {
 		results = results[:20]
 	}
 
+	// 스파크라인 데이터 (상위 종목들의 최근 30일 종가)
+	fillSparklines(results)
+
 	// 최신 날짜 조회 (한국/미국 중 가장 최근)
 	db.DB.QueryRow("SELECT TO_CHAR(MAX(time), 'YYYY-MM-DD') FROM factors").Scan(&dateStr)
 
@@ -189,6 +193,55 @@ func calcSignals(fr factorRow) (int, []Signal) {
 	}
 
 	return score, signals
+}
+
+func fillSparklines(items []Recommendation) {
+	if len(items) == 0 {
+		return
+	}
+
+	// IN 절용 심볼 목록
+	symbols := make([]string, len(items))
+	for i, item := range items {
+		symbols[i] = item.Symbol
+	}
+
+	// 종목별 최근 30일 종가 조회 (LATERAL로 인덱스 활용)
+	query := `
+		SELECT s.sym, m.close
+		FROM unnest($1::text[]) AS s(sym)
+		CROSS JOIN LATERAL (
+			SELECT close, time FROM market_data
+			WHERE symbol = s.sym
+			ORDER BY time DESC LIMIT 30
+		) m
+		ORDER BY s.sym, m.time ASC
+	`
+
+	rows, err := db.DB.Query(query, symbols)
+	if err != nil {
+		log.Printf("sparkline query error: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	// 심볼별 종가 배열
+	sparkMap := make(map[string][]float64)
+	for rows.Next() {
+		var sym string
+		var close float64
+		if err := rows.Scan(&sym, &close); err != nil {
+			log.Printf("sparkline scan error: %v", err)
+			continue
+		}
+		sparkMap[sym] = append(sparkMap[sym], close)
+	}
+
+	for i := range items {
+		if data, ok := sparkMap[items[i].Symbol]; ok {
+			items[i].Sparkline = data
+		}
+	}
 }
 
 func sortByScore(items []Recommendation) {

@@ -10,6 +10,7 @@ export interface Recommendation {
   score: number;
   close: number;
   signals: Signal[];
+  sparkline: number[] | null;
 }
 
 export interface RecommendationsResponse {
