@@ -10,34 +10,47 @@ import { Clock } from "lucide-react";
 
 export default function Home() {
   return (
-    <Suspense fallback={null}>
-      <RecommendationPage />
-    </Suspense>
+    <div>
+      {/* 헤더 — 항상 표시 */}
+      <div className="flex items-center justify-between">
+        <h1 className="font-heading text-2xl font-bold text-on-surface">
+          추천 종목
+        </h1>
+        <Suspense fallback={null}>
+          <MarketToggle />
+        </Suspense>
+      </div>
+
+      {/* 콘텐츠 */}
+      <Suspense
+        fallback={
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <RecommendationCardSkeleton key={i} />
+            ))}
+          </div>
+        }
+      >
+        <RecommendationContent />
+      </Suspense>
+    </div>
   );
 }
 
-function RecommendationPage() {
+function RecommendationContent() {
   const searchParams = useSearchParams();
   const market = searchParams.get("market") ?? undefined;
   const { data, error, isLoading } = useRecommendations(market);
 
   return (
-    <div>
-      {/* 헤더 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-on-surface">
-            추천 종목
-          </h1>
-          {data?.date && (
-            <div className="mt-1 flex items-center gap-1 text-sm text-on-surface-variant">
-              <Clock size={14} />
-              {data.date} 기준
-            </div>
-          )}
+    <>
+      {/* 날짜 */}
+      {data?.date && (
+        <div className="mt-1 flex items-center gap-1 text-sm text-on-surface-variant">
+          <Clock size={14} />
+          {data.date} 기준
         </div>
-        <MarketToggle />
-      </div>
+      )}
 
       {/* 에러 */}
       {error && (
@@ -72,6 +85,6 @@ function RecommendationPage() {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }
